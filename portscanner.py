@@ -1,36 +1,46 @@
-!/bin/python3
+#!/bin/python3
 
 import sys
 import socket
 from datetime import datetime
+from threading import Thread
+from commonPortsDict import commonPortsDict
 
-#Define our target
+#Storing list
+portList = list(commonPortsDict.keys())
+
+#Checking for argument
 if len(sys.argv)==2:
         target=socket.gethostbyname(sys.argv[1])
 else:
         print("invalid no of args.")
         sys.exit()
 
-portList = [20,21,22,23,25,53,80,110,123,143,161,194,443]
-
-try:
-        for port in portList:
+#scan function
+def scanPort(port):
+        try:
                 s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-                socket.setdefaulttimeout(1) #is a float
-                result = s.connect_ex((target,port)) #returns error indictor
-                print("check port {}".format(port))
+                socket.setdefaulttimeout(1)
+                result = s.connect_ex((target,port))
+                #print("check port {}".format(port))
                 if result == 0:
                         print("port {}  is open".format(port))
                 s.close()
 
-except KeyboardInterrupt:
-        print("\n exiting program yayay.")
-        sys.exit()
+        except KeyboardInterrupt:
+                print("\n exiting program.")
+                sys.exit()
 
-except socket.gaierror:
-        print("hostname could not be resolver.")
-        sys.exit()
+        except socket.gaierror:
+                print("hostname could not be resolved.")
+                sys.exit()
 
-except socket.error:
-        print("cound't connect to server")
-        sys.exit()
+        except socket.error:
+                print("couldn't connect to server")
+                sys.exit()
+
+#threading
+for port in commonPortsDict:
+        t = Thread(target=scanPort, kwargs={'port':port})
+        t.start()
+t.join()
